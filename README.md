@@ -134,8 +134,8 @@ ProLyric clones your custom layer geometry, styling, and formatting across all g
 ### Prerequisites
 
 * **Operating System**: Windows 10 (version 19041+) or Windows 11 (64-bit)
-* **Runtime**: [.NET 8.0 Desktop Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/8.0)
-* **SDK** *(for building from source)*: [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+* **Installer**: Zero dependencies (Fully self-contained, .NET runtime included)
+* **For Building from Source**: [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or newer (supports .NET 8 / 9 / 10)
 
 ### Building from Source
 

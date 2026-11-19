@@ -18,27 +18,21 @@ Write-Host "====================================================" -ForegroundCol
 # 1. Publish WPF App
 $publishDir = Join-Path $scriptDir "dist\publish"
 if (-not $SkipPublish) {
-    Write-Host "`n[1/3] Publishing ProLyric (Release, win-x64)..." -ForegroundColor Yellow
+    Write-Host "`n[1/3] Publishing ProLyric (Release, win-x64, Self-Contained)..." -ForegroundColor Yellow
     
     # Ensure dist folder is clean
     if (Test-Path $publishDir) {
         Remove-Item $publishDir -Recurse -Force
     }
 
-    & dotnet build ProLyric\ProLyric.csproj -c Release -r win-x64
-    if ($LASTEXITCODE -ne 0) {
-        Write-Error "dotnet build failed with exit code $LASTEXITCODE."
-        exit $LASTEXITCODE
-    }
-
     $publishArgs = @(
         "publish", "ProLyric\ProLyric.csproj",
         "-c", "Release",
         "-r", "win-x64",
-        "--self-contained", "false",
+        "--self-contained", "true",
         "-p:PublishSingleFile=true",
+        "-p:EnableCompressionInSingleFile=true",
         "-p:DebugType=none",
-        "--no-build",
         "-o", $publishDir
     )
 
