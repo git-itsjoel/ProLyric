@@ -141,7 +141,7 @@ ProLyric clones your custom layer geometry, styling, and formatting across all g
 
 ```powershell
 # Clone the repository
-git clone https://github.com/JoelBoban/ProLyric.git
+git clone https://github.com/git-itsjoel/ProLyric.git
 cd ProLyric
 
 # Restore dependencies & build
