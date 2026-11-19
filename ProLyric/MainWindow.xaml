@@ -1,0 +1,358 @@
+﻿<Window x:Class="ProLyric.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:ProLyric.ViewModels"
+        mc:Ignorable="d"
+        Title="ProLyric - ProPresenter 7+ Lyric Generator"
+        Icon="pack://application:,,,/Assets/app.ico"
+        PreviewKeyDown="Window_PreviewKeyDown"
+        Height="820" Width="1240" MinHeight="620" MinWidth="960"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BrushBgPitchBlack}"
+        Foreground="{StaticResource BrushTextWhite}"
+        FontFamily="{StaticResource FontUI}"
+        FontSize="13">
+
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
+
+    <Grid Background="{StaticResource BrushBgPitchBlack}">
+        <Grid.RowDefinitions>
+            <!-- Top Command Bar -->
+            <RowDefinition Height="Auto"/>
+            <!-- Main Content Area -->
+            <RowDefinition Height="*"/>
+            <!-- Status Bar -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ================= 1. TOP COMMAND BAR ================= -->
+        <Border Grid.Row="0" Background="#050505" BorderBrush="#1C1C1C" BorderThickness="0,0,0,1" Padding="18,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <!-- Brand -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Song Title -->
+                    <ColumnDefinition Width="*"/>
+                    <!-- Mode Switch -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Action Buttons -->
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Brand -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,24,0">
+                    <TextBlock Text="PROLYRIC" FontSize="17" FontWeight="ExtraBold" Foreground="#FFFFFF"
+                               VerticalAlignment="Center"/>
+                    <Border Background="#1C1C1C" BorderBrush="#333333" BorderThickness="1" CornerRadius="4" Padding="5,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="PRO 7+" FontSize="9" FontWeight="Bold" Foreground="#CCCCCC"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Song Title with Placeholder -->
+                <Grid Grid.Column="1" Margin="0,0,20,0">
+                    <TextBox x:Name="TxtSongTitle" Text="{Binding SongTitle, UpdateSourceTrigger=PropertyChanged}"
+                             Height="36" VerticalContentAlignment="Center"
+                             Background="#0A0A0A" Foreground="#FFFFFF"
+                             BorderBrush="#242424" BorderThickness="1" Padding="12,0"
+                             FontFamily="{StaticResource FontUI}" FontWeight="Medium" FontSize="14"
+                             CaretBrush="#FFFFFF"/>
+                    <TextBlock IsHitTestVisible="False" Text="Song Title (optional — defaults to first line of lyrics)"
+                               VerticalAlignment="Center" Margin="14,0,0,0" Foreground="#555555"
+                               FontFamily="{StaticResource FontUI}" FontSize="13"
+                               Visibility="{Binding Text, ElementName=TxtSongTitle, Converter={x:Static vm:EmptyStringToVisibilityConverter.Instance}}"/>
+                </Grid>
+
+                <!-- Segmented Mode Switcher (Pill Style) -->
+                <Border Grid.Column="2" Background="#0E0E0E" CornerRadius="8" Padding="3" Margin="0,0,20,0" BorderBrush="#222222" BorderThickness="1">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Single Lang"
+                                Command="{Binding SetSingleModeCommand}"
+                                Padding="12,5" Cursor="Hand" BorderThickness="0">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="FontFamily" Value="{StaticResource FontUI}"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Foreground" Value="#888888"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="pill" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsDualMode}" Value="False">
+                                            <Setter Property="Background" Value="#FFFFFF"/>
+                                            <Setter Property="Foreground" Value="#000000"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+
+                        <Button Content="Dual Lang"
+                                Command="{Binding SetDualModeCommand}"
+                                Padding="12,5" Cursor="Hand" BorderThickness="0">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="FontFamily" Value="{StaticResource FontUI}"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Foreground" Value="#888888"/>
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="pill" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsDualMode}" Value="True">
+                                            <Setter Property="Background" Value="#FFFFFF"/>
+                                            <Setter Property="Foreground" Value="#000000"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Action Buttons -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="+ New" Command="{Binding NewSongCommand}"
+                            Style="{StaticResource BtnSecondary}" Padding="12,6" Margin="0,0,6,0"/>
+                    <Button Content="Library" Command="{Binding OpenLibraryCommand}"
+                            Style="{StaticResource BtnSecondary}" Padding="13,6" Margin="0,0,6,0"/>
+                    <Button Content="SongDB" Command="{Binding OpenSongDbCommand}"
+                            Style="{StaticResource BtnSecondary}" Padding="13,6" Margin="0,0,6,0"
+                            ToolTip="Search and import songs from Song Database (SongDB)"/>
+                    <Button Content="Bulk Paste" Command="{Binding OpenBulkPasteCommand}"
+                            Style="{StaticResource BtnSecondary}" Padding="13,6" Margin="0,0,8,0"/>
+                    <Button Content="Save" Command="{Binding SaveSongCommand}"
+                            Style="{StaticResource BtnSecondary}" FontWeight="SemiBold" Padding="14,6" Margin="0,0,8,0"/>
+                    <Button Content="Export .pro" Command="{Binding ExportProCommand}"
+                            Style="{StaticResource BtnPrimary}" Padding="18,6"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ================= 2. MAIN WORKSPACE ================= -->
+        <Grid Grid.Row="1" Margin="16,14">
+            <Grid.ColumnDefinitions>
+                <!-- Left: Slide Navigator -->
+                <ColumnDefinition Width="340" MinWidth="260"/>
+                <!-- Splitter -->
+                <ColumnDefinition Width="12"/>
+                <!-- Right: Slide Editor -->
+                <ColumnDefinition Width="*" MinWidth="450"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- LEFT PANEL: Slide Navigator -->
+            <Border Grid.Column="0" Background="#080808" BorderBrush="#181818" BorderThickness="1" CornerRadius="8" Padding="14">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <!-- Header & Slide Controls -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- Slides List -->
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Navigator Controls -->
+                    <DockPanel Grid.Row="0" Margin="0,0,0,12">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" DockPanel.Dock="Left">
+                            <TextBlock Text="SLIDES" FontWeight="Bold" Foreground="#666666" FontSize="11" VerticalAlignment="Center"/>
+                            <Border Background="#1A1A1A" CornerRadius="10" Padding="7,1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Slides.Count}" FontSize="10" FontWeight="Bold" Foreground="#CCCCCC"/>
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" DockPanel.Dock="Right">
+                            <Button Content="+ Add" Command="{Binding AddSlideCommand}"
+                                    Style="{StaticResource BtnTool}" FontWeight="SemiBold" Foreground="#FFFFFF" Padding="10,3" Margin="0,0,4,0"/>
+                            <Button Content="▲" Command="{Binding MoveUpCommand}"
+                                    Style="{StaticResource BtnTool}" Width="26" Height="24" Margin="0,0,4,0" ToolTip="Move Slide Up"/>
+                            <Button Content="▼" Command="{Binding MoveDownCommand}"
+                                    Style="{StaticResource BtnTool}" Width="26" Height="24" Margin="0,0,4,0" ToolTip="Move Slide Down"/>
+                            <Button Content="✕" Command="{Binding RemoveSlideCommand}"
+                                    Style="{StaticResource BtnTool}" Width="26" Height="24" Foreground="#FF6666" ToolTip="Delete Selected Slide"/>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <!-- Slides ListBox -->
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Slides}" SelectedItem="{Binding SelectedSlide}"
+                             Background="Transparent" BorderThickness="0" Foreground="#FFFFFF"
+                             VirtualizingPanel.ScrollUnit="Pixel"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0,0,0,6"/>
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="CardBorder" Background="#0E0E0E" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="6" Padding="12">
+                                                <ContentPresenter/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="CardBorder" Property="Background" Value="#1A1A1A"/>
+                                                    <Setter TargetName="CardBorder" Property="BorderBrush" Value="#FFFFFF"/>
+                                                </Trigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="CardBorder" Property="BorderBrush" Value="#383838"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:SlideViewModel}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- Top Line: Slide # and Section Tag -->
+                                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+                                        <Border Background="#1C1C1C" CornerRadius="4" Padding="6,1" Margin="0,0,8,0">
+                                            <TextBlock Text="{Binding SlideNumber, StringFormat='#{0}'}"
+                                                       FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" FontFamily="{StaticResource FontMono}"/>
+                                        </Border>
+                                        <TextBlock Text="{Binding GroupName}" FontWeight="SemiBold" Foreground="#CCCCCC"
+                                                   FontSize="12" VerticalAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <!-- Bottom Line: Preview in Malayalam font -->
+                                    <TextBlock Grid.Row="1" Text="{Binding DisplayPreview}" Foreground="#888888" FontSize="13"
+                                               FontFamily="{StaticResource FontMalayalam}"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+            <!-- Splitter -->
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Background="Transparent"/>
+
+            <!-- RIGHT PANEL: Slide Editor -->
+            <Border Grid.Column="2" Background="#080808" BorderBrush="#181818" BorderThickness="1" CornerRadius="8" Padding="16">
+                <!-- Visible when a slide is selected -->
+                <Grid Visibility="{Binding SelectedSlide, Converter={x:Static vm:NullToVisibilityConverter.Instance}}">
+                    <Grid.RowDefinitions>
+                        <!-- Group / Section Header Bar -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- Text Editors -->
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Section Header Row -->
+                    <DockPanel Grid.Row="0" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                            <TextBlock Text="SECTION" FontWeight="Bold" Foreground="#666666" FontSize="11" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBox Text="{Binding SelectedSlide.GroupName, UpdateSourceTrigger=PropertyChanged}"
+                                     Height="32" Width="180" VerticalContentAlignment="Center"
+                                     Background="#0E0E0E" Foreground="#FFFFFF" BorderBrush="#262626" BorderThickness="1"
+                                     Padding="10,0" FontFamily="{StaticResource FontUI}" FontWeight="SemiBold" FontSize="13"
+                                     CaretBrush="#FFFFFF"/>
+                        </StackPanel>
+
+                        <!-- Right Action Buttons -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <!-- Transliterate Slide Action (Dual Mode only) -->
+                            <Button Content="Malayalam ➔ Manglish" Command="{Binding TransliterateAllSlidesCommand}"
+                                    Visibility="{Binding IsDualMode, Converter={x:Static vm:BoolToVisConverter.Instance}}"
+                                    Style="{StaticResource BtnTool}" FontWeight="SemiBold" Foreground="#FFFFFF"
+                                    Padding="14,6"
+                                    ToolTip="Transliterate Malayalam in Lang 1 to Manglish in Lang 2 for all slides"/>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <!-- Text Editors Grid -->
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <!-- Lang 1 Column -->
+                            <ColumnDefinition Width="*"/>
+                            <!-- Lang 2 Column (Collapsible in Single Mode) -->
+                            <ColumnDefinition Width="{Binding IsDualMode, Converter={x:Static vm:DualColumnWidthConverter.Instance}}"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Lang 1 Box (Malayalam Primary) -->
+                        <DockPanel Grid.Column="0" Margin="0,0,6,0">
+                            <TextBlock DockPanel.Dock="Top" Text="LANGUAGE 1 (MALAYALAM / PRIMARY)" 
+                                       FontWeight="Bold" Foreground="#888888" FontSize="11" Margin="0,0,0,8"/>
+                            <TextBox x:Name="TxtLang1" Text="{Binding SelectedSlide.Lang1Text, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                     Background="#030303" Foreground="#FFFFFF" BorderBrush="#1F1F1F" BorderThickness="1"
+                                     Padding="14" FontFamily="{StaticResource FontMalayalam}" FontSize="16"
+                                     CaretBrush="#FFFFFF"
+                                     PreviewMouseLeftButtonDown="TxtLang_PreviewMouseLeftButtonDown"
+                                     ToolTip="Tip: Hold Ctrl and click anywhere in the text to split the slide at that position (or press Ctrl + Enter)."/>
+                        </DockPanel>
+
+                        <!-- Lang 2 Box (Manglish / Secondary) -->
+                        <DockPanel Grid.Column="1" Margin="6,0,0,0"
+                                   Visibility="{Binding IsDualMode, Converter={x:Static vm:BoolToVisConverter.Instance}}">
+                            <TextBlock DockPanel.Dock="Top" Text="LANGUAGE 2 (MANGLISH / SECONDARY)" 
+                                       FontWeight="Bold" Foreground="#888888" FontSize="11" Margin="0,0,0,8"/>
+                            <TextBox x:Name="TxtLang2" Text="{Binding SelectedSlide.Lang2Text, UpdateSourceTrigger=PropertyChanged}"
+                                     AcceptsReturn="True" AcceptsTab="True" TextWrapping="Wrap"
+                                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                     Background="#030303" Foreground="#E0E0E0" BorderBrush="#1F1F1F" BorderThickness="1"
+                                     Padding="14" FontFamily="{StaticResource FontUI}" FontSize="15"
+                                     CaretBrush="#FFFFFF"
+                                     PreviewMouseLeftButtonDown="TxtLang_PreviewMouseLeftButtonDown"
+                                     ToolTip="Tip: Hold Ctrl and click anywhere in the text to split the slide at that position (or press Ctrl + Enter)."/>
+                        </DockPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ================= 3. STATUS BAR ================= -->
+        <Border Grid.Row="2" Background="#040404" BorderBrush="#141414" BorderThickness="0,1,0,0" Padding="18,6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" Foreground="#888888" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                
+                <!-- Watermark / Credits with Vector Heart -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBlock Text="made with " Foreground="#555555" FontSize="11" VerticalAlignment="Center"/>
+                    <Path Data="M 12,21.35 L 10.55,20.03 C 5.4,15.36 2,12.28 2,8.5 C 2,5.42 4.42,3 7.5,3 C 9.24,3 10.91,3.81 12,5.09 C 13.09,3.81 14.76,3 16.5,3 C 19.58,3 22,5.42 22,8.5 C 22,12.28 18.6,15.36 13.45,20.04 L 12,21.35 Z"
+                          Fill="#888888" Width="10" Height="10" Stretch="Uniform" Margin="2,1,2,0" VerticalAlignment="Center"/>
+                    <TextBlock Text=" by joe!" Foreground="#555555" FontSize="11" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Slides.Count, StringFormat='Total Slides: {0}'}" Foreground="#AAAAAA" FontSize="12" Margin="0,0,20,0" VerticalAlignment="Center"/>
+                    <Border Background="#141414" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding LanguageMode, StringFormat='MODE: {0}'}" Foreground="#DDDDDD" FontSize="10" FontWeight="Bold"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

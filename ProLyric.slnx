@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ProLyric.Tests/ProLyric.Tests.csproj" />
+  <Project Path="ProLyric/ProLyric.csproj" />
+</Solution>
