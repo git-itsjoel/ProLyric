@@ -166,6 +166,11 @@ public partial class MainViewModel : ObservableObject
     public void TransliterateAllSlides()
     {
         if (Slides.Count == 0) return;
+        if (!IsDualMode)
+        {
+            LanguageMode = LanguageMode.Dual;
+        }
+
         int count = 0;
         foreach (var slide in Slides)
         {
@@ -175,7 +180,7 @@ public partial class MainViewModel : ObservableObject
                 count++;
             }
         }
-        StatusMessage = $"Transliterated {count} slide(s) from Malayalam to Manglish.";
+        StatusMessage = $"✓ Transliterated {count} slide(s) from Malayalam to Manglish.";
     }
 
     [RelayCommand]
@@ -184,12 +189,17 @@ public partial class MainViewModel : ObservableObject
         if (SelectedSlide is null) return;
         if (string.IsNullOrWhiteSpace(SelectedSlide.Lang1Text))
         {
-            StatusMessage = "Lang 1 text is empty.";
+            StatusMessage = "⚠ Lang 1 text is empty.";
             return;
         }
 
+        if (!IsDualMode)
+        {
+            LanguageMode = LanguageMode.Dual;
+        }
+
         SelectedSlide.Lang2Text = MalayalamTransliteratorService.Transliterate(SelectedSlide.Lang1Text);
-        StatusMessage = "Transliterated Lang 1 to Lang 2.";
+        StatusMessage = $"✓ Transliterated slide #{SelectedSlide.SlideNumber} to Manglish.";
     }
 
     [RelayCommand]
@@ -357,8 +367,7 @@ public partial class MainViewModel : ObservableObject
         var project = BuildProject();
         _libraryDb.SaveSong(project);
         CurrentSongId = project.Id;
-        StatusMessage = $"Saved '{project.Title}' to local library.";
-        MessageBox.Show($"Song '{project.Title}' saved to library successfully!", "Saved", MessageBoxButton.OK, MessageBoxImage.Information);
+        StatusMessage = $"✓ Saved '{project.Title}' to local library.";
     }
 
     [RelayCommand]
@@ -366,7 +375,7 @@ public partial class MainViewModel : ObservableObject
     {
         if (Slides.Count == 0)
         {
-            MessageBox.Show("Please add at least one slide before exporting.", "No Slides", MessageBoxButton.OK, MessageBoxImage.Warning);
+            StatusMessage = "⚠ Please add at least one slide before exporting.";
             return;
         }
 
@@ -411,12 +420,11 @@ public partial class MainViewModel : ObservableObject
                 _settingsService.Update(s => s.DefaultExportFolder = exportDir);
             }
 
-            StatusMessage = $"Successfully exported '{Path.GetFileName(outPath)}' and saved to library.";
-            MessageBox.Show($"Presentation successfully exported to:\n{outPath}", "Export Succeeded", MessageBoxButton.OK, MessageBoxImage.Information);
+            StatusMessage = $"✓ Exported '{Path.GetFileName(outPath)}' successfully.";
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Export failed:\n{ex.Message}", "Export Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            StatusMessage = $"✗ Export failed: {ex.Message}";
         }
     }
 
@@ -442,7 +450,7 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void OpenSongDb()
     {
-        var dlg = new VerseViewDialog(_settingsService)
+        var dlg = new SongDbDialog(_settingsService)
         {
             Owner = Application.Current.MainWindow
         };
@@ -462,9 +470,6 @@ public partial class MainViewModel : ObservableObject
             StatusMessage = $"Imported '{SongTitle}' from SongDB ({Slides.Count} slides).";
         }
     }
-
-    [RelayCommand]
-    private void OpenVerseView() => OpenSongDb();
 
     [RelayCommand]
     private void OpenBulkPaste()

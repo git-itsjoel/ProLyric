@@ -1,77 +1,131 @@
 # ProLyric
 
 <p align="center">
-  <strong>Fast, elegant lyric generator for Renewed Vision ProPresenter 7+</strong><br>
-  Single & Dual-Language presentations, offline Malayalam-to-Manglish transliteration, SongDB search, and built-in song library.
+  <img src="ProLyric/Assets/logo.png" alt="ProLyric Logo" width="128" height="128" />
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet&logoColor=white" alt=".NET 8.0" />
-  <img src="https://img.shields.io/badge/Platform-Windows%20x64-0078D6?logo=windows&logoColor=white" alt="Platform" />
-  <img src="https://img.shields.io/badge/UI-WPF%20XAML-00599C" alt="WPF" />
-  <img src="https://img.shields.io/badge/License-MIT-green" alt="License" />
+  <strong>High-performance, keyboard-first lyric generator for Renewed Vision ProPresenter 7+</strong><br>
+  Single & Dual-language presentations • 100% offline Malayalam-to-Manglish transliteration • SongDB hymn search • Instant .pro export
+</p>
+
+<p align="center">
+  <a href="https://dotnet.microsoft.com/download/dotnet/8.0"><img src="https://img.shields.io/badge/.NET-8.0-512BD4?style=flat-square&logo=dotnet&logoColor=white" alt=".NET 8.0" /></a>
+  <img src="https://img.shields.io/badge/Platform-Windows%20x64-0078D6?style=flat-square&logo=windows&logoColor=white" alt="Platform" />
+  <img src="https://img.shields.io/badge/UI-WPF%20XAML-00599C?style=flat-square" alt="WPF" />
+  <img src="https://img.shields.io/badge/Architecture-MVVM-informational?style=flat-square" alt="MVVM" />
+  <img src="https://img.shields.io/badge/Tests-81%20Passed-brightgreen?style=flat-square" alt="Tests" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" /></a>
 </p>
 
 ---
 
 ## Overview
 
-**ProLyric** is a modern Windows desktop application built with .NET 8 and WPF designed to streamline lyric slide creation for church worship presentations in Renewed Vision ProPresenter 7+.
+**ProLyric** is a purpose-built desktop application designed to streamline church media preparation. Creating bilingual, dual-language, or single-language hymn and worship presentations for **Renewed Vision ProPresenter 7+** traditionally requires hours of manual copy-pasting, line splitting, transliterating, and formatting.
 
-Whether preparing traditional Malayalam hymns, modern bilingual choruses, or dual-language slides (Malayalam + phonetic Manglish), ProLyric eliminates tedious slide formatting and manual typing by automating file generation directly into native `.pro` presentation files.
+ProLyric turns this workflow into a seconds-long, keyboard-driven experience: import lyrics from SongDB databases, paste unstructured text, auto-transliterate Malayalam to Manglish with a single keystroke, split slides on the fly, and export directly into native `.pro` presentation files with zero dialog clutter.
 
-### Key Features
-
-* **ProPresenter 7+ Native Generation**: Generates official `.pro` files with internal Protobuf binary structures, fully compatible with ProPresenter 7.0 through latest versions.
-* **Single & Dual-Language Modes**:
-  * **Single Mode**: Clean, single-text primary slides.
-  * **Dual Mode**: Seamless stacked dual-language slides (`Lang1` Primary + `Lang2` Secondary).
-* **High-Accuracy Offline Transliteration**:
-  * Instant Malayalam-to-Manglish transliteration for entire presentations with one click (`Ctrl + Shift + T` or button).
-  * Runs 100% locally and offline—no internet access or cloud API keys required.
-* **SongDB (VerseVIEW Integration)**:
-  * Connect any SQLite (`.db`, `.sqlite`) or XML hymn database.
-  * Lightning-fast search across thousands of hymns by title, Malayalam/English lyrics, or song number.
-  * Preview primary and secondary lyrics and import directly with customizable paragraph or line-count splitting.
-* **Local Song Library**:
-  * Built-in SQLite database to save, search, reopen, and duplicate song projects.
-* **Smart Slide Editing**:
-  * **Ctrl + Enter**: Split slide at cursor position.
-  * **Ctrl + Left Click**: Split slide at clicked text location.
-  * **Bulk Paste**: Import unstructured lyrics with automatic stanza splitting (blank lines or fixed line count).
-* **Theme-Proof RTF Formatting**:
-  * ProLyric injects exact paragraph control words (`\pard`, `\fN`, `\fsN`, `\cfN`, `\qc`) for every line. When you apply a custom ProPresenter Theme in church, all lines uniformly inherit the theme's font size and style without shrinking or font degradation.
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                              PROLYRIC                                  │
+│                                                                        │
+│   [ SongDB Search ]  ──┐                                               │
+│   [ Bulk Paste Text ] ─┼─► [ Smart Slide Editor ] ─► [ Native .pro ]   │
+│   [ Direct Typing ]  ──┘          │                         │          │
+│                                   ▼                         ▼          │
+│                       [ Ctrl+Shift+T Transliterate ]  [ ProPresenter ] │
+│                        (Malayalam ➔ Manglish)         (7.0 - 7.16+)    │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## ProPresenter Template Setup
+## Key Features
 
-ProLyric includes an **internal default template** that automatically formats centered, high-visibility 54pt text. No template configuration is strictly required to get started.
+### 🚀 Direct ProPresenter 7+ Generation
+* **Binary Protobuf Serialization**: Builds official `.pro` files with internal Google Protocol Buffer binary schemas.
+* **Fully Compatible**: Works out-of-the-box with ProPresenter 7.0 through latest releases on both Windows and macOS.
+* **Built-in Zero-Config Template**: Includes an internal 54pt centered default layout—no external template files required to start generating presentations immediately.
+* **Custom Template Support**: Optionally connect any custom `.pro` file using standard `Lang1` and `Lang2` slide layers to preserve your church's custom fonts, margins, positions, and styling.
 
-If you wish to design a custom template in ProPresenter to match your church's stage screens or stream overlays:
+### 🌐 Dual-Language & Offline Transliteration
+* **Single & Dual-Language Modes**:
+  * **Single Lang**: Clean, focused presentation for Malayalam, English, or any single language.
+  * **Dual Lang**: Stacked bilingual slides featuring primary text (`Lang1`) and secondary phonetics (`Lang2`).
+* **Instant Transliteration (`Ctrl + Shift + T`)**: Automatically converts all Malayalam lyrics across every slide into phonetic Manglish in milliseconds.
+* **100% Offline & Private**: Runs entirely on your local machine using customized phonetic linguistic algorithms—no internet connection, cloud APIs, or external dependencies required.
+* **Linguistic Accuracy**: Handles complex Malayalam phonetics including chillu letters (*ർ, ൽ, ൾ, ൻ, ൺ*), samvruthokaram word-final vowels, anusvara assimilation (*ഗംഗ ➔ Ganga*), and conjunct ligatures.
 
-1. Open **ProPresenter 7+**.
-2. Create a new presentation (e.g. `Template - Dual Lang.pro`).
-3. In the slide editor, add your text boxes and **rename the layers**:
-   * **`Lang1`** (case-insensitive): Layer for Primary lyrics (Malayalam / Main language).
-   * **`Lang2`** (case-insensitive): Layer for Secondary lyrics (Manglish / English).
-4. Customize fonts, font sizes, colors, text alignment, margins, text shadows, or backgrounds on each layer.
-5. Export the presentation as a `.pro` file.
+### 📖 SongDB & Hymn Database Search (`Ctrl + D`)
+* **Multi-Format Support**: Connects to SQLite (`.db`, `.sqlite`) and XML song databases.
+* **Intelligent Query Matching**: Search hymns by Malayalam title, English transliteration, full lyrics, or song number.
+* **Flexible Number Syntax**: Supports queries like `25`, `#25`, `Song 25`, `No. 25`, or `Hymn 25` with instant exact-match prioritization.
+* **One-Click Import**: Automatically structures stanzas and splits songs into ready-to-present slides.
 
-ProLyric clones the geometry, positions, styles, and layer hierarchy of `Lang1` and `Lang2` to generate every slide in the presentation.
+### ⚡ Keyboard-First, Non-Intrusive UX
+* **Clean Status Indications**: No interrupting popup confirmation dialogs. All save, export, transliteration, and error notifications appear smoothly in the bottom-left status bar.
+* **IME & Language Switcher Safe**: Global shortcuts function seamlessly whether typing in English, Unicode Malayalam, or using Windows IME layouts.
+* **Precision Slide Splitting**:
+  * <kbd>Ctrl</kbd> + <kbd>Enter</kbd>: Splits the active slide at cursor position.
+  * <kbd>Ctrl</kbd> + <kbd>Click</kbd>: Splits the active slide directly at the clicked word or character.
+* **Bulk Paste (`Ctrl + B`)**: Paste entire songs from websites or text documents with automatic stanza detection by blank lines or fixed line counts.
+
+### 🎨 Theme-Proof RTF Typography
+* ProLyric injects standardized Rich Text Format control words (`\pard`, `\fN`, `\fsN`, `\cfN`, `\qc`) for every line.
+* When your church AV team applies a custom ProPresenter Theme during service, fonts adapt uniformly without shrinking, distortion, or missing character tags.
 
 ---
 
 ## Keyboard Shortcuts
 
-| Shortcut | Action |
-| :--- | :--- |
-| <kbd>Ctrl</kbd> + <kbd>Enter</kbd> | Split current slide at cursor position into two slides |
-| <kbd>Ctrl</kbd> + <kbd>Click</kbd> | Split slide at mouse click location |
-| <kbd>Ctrl</kbd> + <kbd>N</kbd> | New presentation |
-| <kbd>Ctrl</kbd> + <kbd>S</kbd> | Save current presentation to local library |
-| <kbd>Ctrl</kbd> + <kbd>E</kbd> | Export `.pro` presentation file |
-| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>T</kbd> | Transliterate all Malayalam slides to Manglish |
+ProLyric is built for rapid, mouse-free operation:
+
+| Shortcut | Action | Description |
+| :--- | :--- | :--- |
+| <kbd>Ctrl</kbd> + <kbd>N</kbd> | **New Song** | Start a fresh presentation with a clean slide |
+| <kbd>Ctrl</kbd> + <kbd>S</kbd> | **Save to Library** | Persist song project to local SQLite library (no dialog popups) |
+| <kbd>Ctrl</kbd> + <kbd>E</kbd> | **Export .pro** | Export native ProPresenter presentation file |
+| <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>T</kbd> | **Transliterate All** | Convert all Malayalam slides to Manglish (auto-activates Dual Mode) |
+| <kbd>Ctrl</kbd> + <kbd>T</kbd> | **Transliterate Current** | Transliterate only the currently selected slide |
+| <kbd>Ctrl</kbd> + <kbd>Enter</kbd> | **Split Slide at Cursor** | Break slide into two consecutive slides at the cursor position |
+| <kbd>Ctrl</kbd> + <kbd>Click</kbd> | **Split Slide at Mouse** | Click anywhere in the text editor to split at that position |
+| <kbd>Ctrl</kbd> + <kbd>O</kbd> | **Open Library** | Browse and load previously saved songs |
+| <kbd>Ctrl</kbd> + <kbd>D</kbd> | **Open SongDB** | Search and import from connected hymn databases |
+| <kbd>Ctrl</kbd> + <kbd>B</kbd> | **Bulk Paste** | Open bulk paste parser for multi-stanza lyric imports |
+| <kbd>Ctrl</kbd> + <kbd>M</kbd> / <kbd>Insert</kbd> | **Add Slide** | Append a new slide to the presentation |
+| <kbd>Alt</kbd> + <kbd>▲</kbd> | **Move Slide Up** | Reorder current slide up in the sequence |
+| <kbd>Alt</kbd> + <kbd>▼</kbd> | **Move Slide Down** | Reorder current slide down in the sequence |
+
+---
+
+## Quick Workflow Guide
+
+### Creating a Bilingual Presentation in 30 Seconds
+
+1. **New Song**: Press <kbd>Ctrl</kbd> + <kbd>N</kbd> and enter the song title (or let it auto-detect from the first line).
+2. **Add Lyrics**:
+   * *Option A*: Press <kbd>Ctrl</kbd> + <kbd>D</kbd> to find and import the song from SongDB.
+   * *Option B*: Press <kbd>Ctrl</kbd> + <kbd>B</kbd>, paste raw lyrics, and choose paragraph splitting.
+   * *Option C*: Type or paste Malayalam lyrics directly into the **Language 1** text editor.
+3. **Transliterate**: Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>T</kbd>. ProLyric instantly transliterates every slide into Manglish and displays the secondary text box.
+4. **Adjust Slides**: Review slide lengths. If a slide has too many lines, place the cursor and press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to split it cleanly.
+5. **Export**: Press <kbd>Ctrl</kbd> + <kbd>E</kbd>. Select your destination folder, and your `.pro` file is ready to drop into ProPresenter!
+
+---
+
+## Custom Template Configuration (Optional)
+
+ProLyric includes an internal built-in template that renders 54pt centered white text. If you want custom screen styling:
+
+1. Open **ProPresenter 7+** and create a presentation (e.g. `CustomTemplate.pro`).
+2. Add text boxes on a slide and rename the layers:
+   * **`Lang1`** *(case-insensitive)*: Primary lyric layer (Malayalam / Main language).
+   * **`Lang2`** *(case-insensitive)*: Secondary lyric layer (Manglish / English).
+3. Customize position, typography, colors, shadows, and text alignment.
+4. Export the presentation and select it in ProLyric via the template picker.
+
+ProLyric clones your custom layer geometry, styling, and formatting across all generated slides.
 
 ---
 
@@ -79,66 +133,79 @@ ProLyric clones the geometry, positions, styles, and layer hierarchy of `Lang1` 
 
 ### Prerequisites
 
-* **Operating System**: Windows 10 (Build 19041+) or Windows 11 (64-bit)
+* **Operating System**: Windows 10 (version 19041+) or Windows 11 (64-bit)
 * **Runtime**: [.NET 8.0 Desktop Runtime (x64)](https://dotnet.microsoft.com/download/dotnet/8.0)
 * **SDK** *(for building from source)*: [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 
----
+### Building from Source
 
-## Build & Development
-
-### 1. Run from Source
 ```powershell
 # Clone the repository
 git clone https://github.com/JoelBoban/ProLyric.git
 cd ProLyric
 
-# Build and run
+# Restore dependencies & build
+dotnet build
+
+# Run the application
 dotnet run --project ProLyric
 ```
 
-### 2. Run Unit Tests
-ProLyric includes an extensive test suite covering Protobuf serialization, RTF Unicode multi-line formatting, transliteration phonetic rules, SQLite library operations, and SongDB parser compatibility:
+### Running Unit Tests
+
+ProLyric includes an automated test suite covering Protobuf serialization, RTF Unicode encoding, phonetic transliteration, SQLite queries, and SongDB search parsers:
 
 ```powershell
 dotnet test
 ```
 
-### 3. Build Windows Installer (`.exe`)
-ProLyric uses [Inno Setup 6](https://jrsoftware.org/isinfo.php) to build a streamlined, single-file Windows installer:
+### Compiling Windows Installer (`.exe`)
+
+ProLyric includes an automated build script powered by [Inno Setup 6](https://jrsoftware.org/isinfo.php):
 
 ```powershell
-# Publishes Release win-x64 binaries and compiles installer
 powershell -ExecutionPolicy Bypass -File .\build-installer.ps1
 ```
 
-The compiled installer will be located at:
-```text
-dist\ProLyric-Setup.exe
-```
+The compiled standalone setup installer is generated in `dist\ProLyric-Setup.exe`.
 
 ---
 
-## Project Structure
+## Architecture & Project Structure
 
 ```text
 ProLyric/
-├── ProLyric/                 # WPF Application Project
-│   ├── Assets/               # Logo and application icons (.ico, .png)
-│   ├── Models/               # Core data models (SlideModel, SongProject)
-│   ├── Protos/               # ProPresenter 7+ Protocol Buffer definitions
-│   ├── Services/             # Business logic
-│   │   ├── ProPresenterService.cs     # .pro protobuf builder & template cloner
-│   │   ├── RtfUnicodeEncoder.cs       # RTF Unicode & paragraph formatting engine
-│   │   ├── TransliterationService.cs  # Malayalam -> Manglish phonetic engine
-│   │   ├── VerseViewDbService.cs      # SongDB SQLite/XML database provider
-│   │   ├── LibraryDbService.cs        # SQLite song library repository
-│   │   └── SettingsService.cs         # App configuration management
-│   ├── ViewModels/           # MVVM view models (CommunityToolkit.Mvvm)
-│   └── Views/                # XAML windows and dialogs
-├── ProLyric.Tests/           # Unit & integration test suite (xUnit)
-├── build-installer.ps1       # Automated publish & installer script
-├── installer.iss             # Inno Setup 6 compiler configuration
+├── ProLyric/                          # WPF .NET 8 Desktop Application
+│   ├── Assets/                        # Branding, logos, and high-DPI application icons
+│   ├── Models/                        # Core data models
+│   │   ├── AppSettings.cs             # Application configuration model
+│   │   ├── LanguageMode.cs            # Single vs. Dual language enum
+│   │   ├── LyricSlide.cs              # Slide data model with section & language properties
+│   │   └── SongProject.cs             # Full song presentation project structure
+│   ├── Protos/                        # Official ProPresenter 7+ Protocol Buffer definitions
+│   │   ├── presentation.proto         # Presentation cues, actions, and slide groups
+│   │   ├── slide.proto                # Visual elements, text components, and builds
+│   │   └── ...                        # Extended RVProtoData schemas
+│   ├── Services/                      # Application business logic
+│   │   ├── ProPresenterService.cs     # .pro protobuf presentation generator & template cloner
+│   │   ├── RtfUnicodeEncoder.cs       # RTF Unicode character replacement & paragraph formatter
+│   │   ├── MalayalamTransliteratorService.cs # Offline Malayalam-to-Manglish phonetic engine
+│   │   ├── SongDbService.cs           # SQLite & XML hymn database query provider
+│   │   ├── SongLibraryDbService.cs    # Local SQLite song repository manager
+│   │   ├── LyricParserService.cs      # Stanza chunking & title resolution engine
+│   │   └── SettingsService.cs         # Settings manager (%AppData%\ProLyric)
+│   ├── ViewModels/                    # MVVM view models (CommunityToolkit.Mvvm)
+│   │   ├── MainViewModel.cs           # Core application state, commands, and operations
+│   │   ├── SlideViewModel.cs          # Slide view model with live preview formatting
+│   │   └── Converters.cs              # XAML UI value converters
+│   └── Views/                         # XAML UI windows & dialogs
+│       ├── BulkPasteDialog.xaml       # Multi-stanza raw lyric importer
+│       ├── LibraryDialog.xaml         # Local song library browser
+│       └── SongDbDialog.xaml          # SongDB hymn database search & import interface
+├── ProLyric.Tests/                    # Comprehensive xUnit test suite (81 tests)
+├── build-installer.ps1                # Automated release & installer build script
+├── installer.iss                      # Inno Setup 6 script configuration
+├── ProLyric.slnx                      # Modern .NET solution file
 └── README.md
 ```
 
@@ -146,17 +213,17 @@ ProLyric/
 
 ## Acknowledgments & Credits
 
-ProLyric relies on several open-source projects and linguistic algorithms:
+ProLyric is made possible thanks to these open-source projects:
 
-* **[greyshirtguy/ProPresenter7-Proto](https://github.com/greyshirtguy/ProPresenter7-Proto)**: For the reverse-engineered Protocol Buffer schemas defining Renewed Vision ProPresenter 7+ presentations, cues, actions, and slide graphics.
-* **[knadh/ml2en](https://github.com/knadh/ml2en)** by Kailash Nadh: For the foundational phonetic vowel/consonant character mapping and transliteration structure from Malayalam to Latin script.
-* **[Ajishkbn/aksharam](https://github.com/Ajishkbn/aksharam)** by Ajish: For Malayalam phonetic syllable parsing, chillu letters, conjunct ligatures, and contextual transliteration rules.
+* **[greyshirtguy/ProPresenter7-Proto](https://github.com/greyshirtguy/ProPresenter7-Proto)**: Protocol Buffer definitions reverse-engineered for Renewed Vision ProPresenter 7+.
+* **[knadh/ml2en](https://github.com/knadh/ml2en)** by Kailash Nadh: Foundational phonetic vowel and consonant transliteration mappings.
+* **[Ajishkbn/aksharam](https://github.com/Ajishkbn/aksharam)** by Ajish: Advanced Malayalam phonetic syllable parsing, chillu letters, and contextual conjunct handling.
 
 ---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for full details.
 
 <p align="center">
   <sub>made with 🤍 by joe!</sub>

@@ -16,16 +16,16 @@ public class Phase3Tests
         // Use a temp file by temporarily overriding via reflection is complex;
         // instead, just test round-trip via save/load with the actual service.
         var svc = new SettingsService();
-        string originalDb = svc.Current.VerseViewDbPath;
+        string originalDb = svc.Current.SongDbPath;
 
-        svc.Update(s => s.VerseViewDbPath = "C:\\test\\verses.db");
+        svc.Update(s => s.SongDbPath = "C:\\test\\verses.db");
 
         // Create a new instance to reload from disk
         var svc2 = new SettingsService();
-        Assert.Equal("C:\\test\\verses.db", svc2.Current.VerseViewDbPath);
+        Assert.Equal("C:\\test\\verses.db", svc2.Current.SongDbPath);
 
         // Restore
-        svc.Update(s => s.VerseViewDbPath = originalDb);
+        svc.Update(s => s.SongDbPath = originalDb);
     }
 
     [Fact]

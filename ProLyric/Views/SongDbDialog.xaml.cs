@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
@@ -7,17 +7,17 @@ using ProLyric.Services;
 
 namespace ProLyric.Views;
 
-public partial class VerseViewDialog : Window
+public partial class SongDbDialog : Window
 {
     private readonly SettingsService _settingsService;
     private readonly LyricParserService _parser = new();
-    private VerseViewDbService? _dbService;
+    private SongDbService? _dbService;
 
     public string ResultTitle { get; private set; } = string.Empty;
     public IReadOnlyList<LyricSlide> ResultSlides { get; private set; } = [];
     public LanguageMode ResultMode { get; private set; } = LanguageMode.Dual;
 
-    public VerseViewDialog(SettingsService settingsService)
+    public SongDbDialog(SettingsService settingsService)
     {
         InitializeComponent();
         _settingsService = settingsService;
@@ -28,7 +28,7 @@ public partial class VerseViewDialog : Window
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        string path = _settingsService.Current.VerseViewDbPath;
+        string path = _settingsService.Current.SongDbPath;
         if (!string.IsNullOrEmpty(path) && File.Exists(path))
         {
             LoadDb(path);
@@ -52,10 +52,10 @@ public partial class VerseViewDialog : Window
 
         if (dlg.ShowDialog() == true)
         {
-            _settingsService.Update(s => s.VerseViewDbPath = dlg.FileName);
+            _settingsService.Update(s => s.SongDbPath = dlg.FileName);
             LoadDb(dlg.FileName);
         }
-        else if (string.IsNullOrEmpty(_settingsService.Current.VerseViewDbPath) || !File.Exists(_settingsService.Current.VerseViewDbPath))
+        else if (string.IsNullOrEmpty(_settingsService.Current.SongDbPath) || !File.Exists(_settingsService.Current.SongDbPath))
         {
             TxtDbPath.Text = "No database connected";
             BtnChangeDb.Content = "+ Add SongDB...";
@@ -68,7 +68,7 @@ public partial class VerseViewDialog : Window
         try
         {
             _dbService?.Dispose();
-            _dbService = new VerseViewDbService(path);
+            _dbService = new SongDbService(path);
             _dbService.Open();
 
             TxtDbPath.Text = Path.GetFileName(path);
@@ -120,7 +120,7 @@ public partial class VerseViewDialog : Window
 
     private void OnSongSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (LstSongs.SelectedItem is not VerseViewSongSummary summary || _dbService is null)
+        if (LstSongs.SelectedItem is not SongDbSongSummary summary || _dbService is null)
         {
             TxtPreviewTitle.Text = "Select a song to preview";
             TxtPreviewPrimary.Text = "";
@@ -130,7 +130,7 @@ public partial class VerseViewDialog : Window
 
         try
         {
-            var content = _dbService.LoadSong(summary.Id, VerseViewLanguageChoice.Both);
+            var content = _dbService.LoadSong(summary.Id, SongDbLanguageChoice.Both);
             if (content is not null)
             {
                 TxtPreviewTitle.Text = summary.DisplayTitle;
@@ -145,7 +145,7 @@ public partial class VerseViewDialog : Window
 
     private void OnLoadSongClick(object sender, RoutedEventArgs e)
     {
-        if (LstSongs.SelectedItem is not VerseViewSongSummary summary || _dbService is null)
+        if (LstSongs.SelectedItem is not SongDbSongSummary summary || _dbService is null)
         {
             MessageBox.Show("Please select a song first.", "No Song Selected", MessageBoxButton.OK, MessageBoxImage.Information);
             return;
@@ -153,9 +153,9 @@ public partial class VerseViewDialog : Window
 
         var langChoice = CmbLanguage.SelectedIndex switch
         {
-            1 => VerseViewLanguageChoice.PrimaryOnly,
-            2 => VerseViewLanguageChoice.SecondaryOnly,
-            _ => VerseViewLanguageChoice.Both
+            1 => SongDbLanguageChoice.PrimaryOnly,
+            2 => SongDbLanguageChoice.SecondaryOnly,
+            _ => SongDbLanguageChoice.Both
         };
 
         var content = _dbService.LoadSong(summary.Id, langChoice);
@@ -170,14 +170,14 @@ public partial class VerseViewDialog : Window
 
         ResultTitle = !string.IsNullOrWhiteSpace(content.Title) ? content.Title : summary.Title;
 
-        if (langChoice == VerseViewLanguageChoice.PrimaryOnly)
+        if (langChoice == SongDbLanguageChoice.PrimaryOnly)
         {
             ResultMode = LanguageMode.Single;
             ResultSlides = byLineCount
                 ? _parser.ParseByLineCount(content.PrimaryLyrics, linesPerSlide)
                 : _parser.ParseByParagraph(content.PrimaryLyrics);
         }
-        else if (langChoice == VerseViewLanguageChoice.SecondaryOnly)
+        else if (langChoice == SongDbLanguageChoice.SecondaryOnly)
         {
             ResultMode = LanguageMode.Single;
             ResultSlides = byLineCount

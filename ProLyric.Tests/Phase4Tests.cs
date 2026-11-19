@@ -10,23 +10,23 @@ public class Phase4Tests : IDisposable
 {
     private readonly ITestOutputHelper? _output;
     private readonly string _testDbPath;
-    private readonly string _verseViewDbPath;
-    private readonly string _verseViewXmlPath;
+    private readonly string _songDbPath;
+    private readonly string _songDbXmlPath;
 
     public Phase4Tests(ITestOutputHelper output)
     {
         _output = output;
         _testDbPath = Path.Combine(Path.GetTempPath(), $"prolyric_test_{Guid.NewGuid():N}.db");
-        _verseViewDbPath = Path.Combine(Path.GetTempPath(), $"verseview_test_{Guid.NewGuid():N}.db");
-        _verseViewXmlPath = Path.Combine(Path.GetTempPath(), $"verseview_test_{Guid.NewGuid():N}.xml");
+        _songDbPath = Path.Combine(Path.GetTempPath(), $"songdb_test_{Guid.NewGuid():N}.db");
+        _songDbXmlPath = Path.Combine(Path.GetTempPath(), $"songdb_test_{Guid.NewGuid():N}.xml");
     }
 
     public void Dispose()
     {
         SqliteConnection.ClearAllPools();
         try { if (File.Exists(_testDbPath)) File.Delete(_testDbPath); } catch { }
-        try { if (File.Exists(_verseViewDbPath)) File.Delete(_verseViewDbPath); } catch { }
-        try { if (File.Exists(_verseViewXmlPath)) File.Delete(_verseViewXmlPath); } catch { }
+        try { if (File.Exists(_songDbPath)) File.Delete(_songDbPath); } catch { }
+        try { if (File.Exists(_songDbXmlPath)) File.Delete(_songDbXmlPath); } catch { }
     }
 
     // -----------------------------------------------------------------------
@@ -140,14 +140,14 @@ public class Phase4Tests : IDisposable
     }
 
     // -----------------------------------------------------------------------
-    //  VerseViewDbService Tests
+    //  SongDbService Tests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public void VerseViewDb_Sqlite_InspectsAndLoadsCorrectly()
+    public void SongDb_Sqlite_InspectsAndLoadsCorrectly()
     {
-        // Setup mock SQLite VerseVIEW database
-        using (var conn = new SqliteConnection($"Data Source={_verseViewDbPath}"))
+        // Setup mock SQLite song database
+        using (var conn = new SqliteConnection($"Data Source={_songDbPath}"))
         {
             conn.Open();
             using var cmd = conn.CreateCommand();
@@ -164,15 +164,15 @@ public class Phase4Tests : IDisposable
             cmd.ExecuteNonQuery();
         }
 
-        using var vv = new VerseViewDbService(_verseViewDbPath);
-        vv.Open();
+        using var sdb = new SongDbService(_songDbPath);
+        sdb.Open();
 
-        var search = vv.SearchSongs("Daivam");
+        var search = sdb.SearchSongs("Daivam");
         Assert.Single(search);
         Assert.Equal("1", search[0].Id);
         Assert.Equal("Nalla Daivam", search[0].Title);
 
-        var song = vv.LoadSong("1", VerseViewLanguageChoice.Both);
+        var song = sdb.LoadSong("1", SongDbLanguageChoice.Both);
         Assert.NotNull(song);
         Assert.Equal("Nalla Daivam", song.Title);
         Assert.Equal("നല്ല ദൈവം\nവലിയവൻ", song.PrimaryLyrics);
@@ -180,9 +180,9 @@ public class Phase4Tests : IDisposable
     }
 
     [Fact]
-    public void VerseViewDb_Sqlite_SongNumberSearch_ExactAndPrefix()
+    public void SongDb_Sqlite_SongNumberSearch_ExactAndPrefix()
     {
-        using (var conn = new SqliteConnection($"Data Source={_verseViewDbPath}"))
+        using (var conn = new SqliteConnection($"Data Source={_songDbPath}"))
         {
             conn.Open();
             using var cmd = conn.CreateCommand();
@@ -206,38 +206,38 @@ public class Phase4Tests : IDisposable
             cmd.ExecuteNonQuery();
         }
 
-        using var vv = new VerseViewDbService(_verseViewDbPath);
-        vv.Open();
+        using var sdb = new SongDbService(_songDbPath);
+        sdb.Open();
 
         // 1. Search exact number "25"
-        var s25 = vv.SearchSongs("25");
+        var s25 = sdb.SearchSongs("25");
         Assert.Single(s25);
         Assert.Equal("104", s25[0].Id);
         Assert.Equal("25", s25[0].SongNumber);
         Assert.Equal("#25  Song D — ഗാനം ഡി", s25[0].DisplayTitle);
 
         // 2. Search "#25", "Song 25", "No. 25", "Hymn 25"
-        Assert.Equal("25", vv.SearchSongs("#25")[0].SongNumber);
-        Assert.Equal("25", vv.SearchSongs("Song 25")[0].SongNumber);
-        Assert.Equal("25", vv.SearchSongs("No. 25")[0].SongNumber);
-        Assert.Equal("25", vv.SearchSongs("Hymn 25")[0].SongNumber);
+        Assert.Equal("25", sdb.SearchSongs("#25")[0].SongNumber);
+        Assert.Equal("25", sdb.SearchSongs("Song 25")[0].SongNumber);
+        Assert.Equal("25", sdb.SearchSongs("No. 25")[0].SongNumber);
+        Assert.Equal("25", sdb.SearchSongs("Hymn 25")[0].SongNumber);
 
         // 3. Search "1" -> exact match "1" is first, followed by "10", then "100"
-        var s1 = vv.SearchSongs("1");
+        var s1 = sdb.SearchSongs("1");
         Assert.Equal(3, s1.Count);
         Assert.Equal("1", s1[0].SongNumber);
         Assert.Equal("10", s1[1].SongNumber);
         Assert.Equal("100", s1[2].SongNumber);
 
         // 4. Search "10" -> exact match "10" is first, followed by "100"
-        var s10 = vv.SearchSongs("10");
+        var s10 = sdb.SearchSongs("10");
         Assert.Equal(2, s10.Count);
         Assert.Equal("10", s10[0].SongNumber);
         Assert.Equal("100", s10[1].SongNumber);
     }
 
     [Fact]
-    public void VerseViewDb_Xml_SearchesAndLoads()
+    public void SongDb_Xml_SearchesAndLoads()
     {
         string xml = """
             <?xml version="1.0" encoding="utf-8"?>
@@ -248,16 +248,16 @@ public class Phase4Tests : IDisposable
                 </song>
             </songbook>
             """;
-        File.WriteAllText(_verseViewXmlPath, xml);
+        File.WriteAllText(_songDbXmlPath, xml);
 
-        using var vv = new VerseViewDbService(_verseViewXmlPath);
-        vv.Open();
+        using var sdb = new SongDbService(_songDbXmlPath);
+        sdb.Open();
 
-        var search = vv.SearchSongs("Yeshuve");
+        var search = sdb.SearchSongs("Yeshuve");
         Assert.Single(search);
         Assert.Equal("101", search[0].Id);
 
-        var song = vv.LoadSong("101", VerseViewLanguageChoice.Both);
+        var song = sdb.LoadSong("101", SongDbLanguageChoice.Both);
         Assert.NotNull(song);
         Assert.Equal("Yeshuve Pole", song.Title);
         Assert.Equal("യേശുവേ പോലെ", song.PrimaryLyrics);
@@ -265,7 +265,7 @@ public class Phase4Tests : IDisposable
     }
 
     [Fact]
-    public void VerseViewDb_Xml_SongNumberSearch()
+    public void SongDb_Xml_SongNumberSearch()
     {
         string xml = """
             <?xml version="1.0" encoding="utf-8"?>
@@ -278,93 +278,33 @@ public class Phase4Tests : IDisposable
                 </song>
             </songbook>
             """;
-        File.WriteAllText(_verseViewXmlPath, xml);
+        File.WriteAllText(_songDbXmlPath, xml);
 
-        using var vv = new VerseViewDbService(_verseViewXmlPath);
-        vv.Open();
+        using var sdb = new SongDbService(_songDbXmlPath);
+        sdb.Open();
 
-        var search25 = vv.SearchSongs("25");
+        var search25 = sdb.SearchSongs("25");
         Assert.NotEmpty(search25);
         Assert.Equal("25", search25[0].SongNumber);
         Assert.Equal("#25  Amazing Grace", search25[0].DisplayTitle);
 
-        var searchHash = vv.SearchSongs("#25");
+        var searchHash = sdb.SearchSongs("#25");
         Assert.Equal("25", searchHash[0].SongNumber);
 
-        var searchSong = vv.SearchSongs("Song 25");
+        var searchSong = sdb.SearchSongs("Song 25");
         Assert.Equal("25", searchSong[0].SongNumber);
     }
 
     [Fact]
-    public void VerseViewDb_RealFile_Inspect()
+    public void SongDb_ExternalFile_InspectIfExists()
     {
-        string realDb = @"c:\Program Files\VerseVIEW10\resources\app.asar.unpacked\songs_database\songs.db";
-        if (!File.Exists(realDb)) return;
+        string? realDb = Environment.GetEnvironmentVariable("TEST_SONG_DB");
+        if (string.IsNullOrEmpty(realDb) || !File.Exists(realDb)) return;
 
-        using var conn = new SqliteConnection($"Data Source={realDb};Mode=ReadOnly");
-        conn.Open();
+        using var sdb = new SongDbService(realDb);
+        sdb.Open();
 
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT name, sql FROM sqlite_master WHERE type='table';";
-        using var r = cmd.ExecuteReader();
-        while (r.Read())
-        {
-            _output?.WriteLine($"TABLE: {r.GetString(0)}");
-            _output?.WriteLine($"SQL: {r.GetString(1)}\n");
-        }
-
-        // Test with VerseViewDbService
-        using var vv = new VerseViewDbService(realDb);
-        vv.Open();
-        
-        using var cmdMalayalam = conn.CreateCommand();
-        cmdMalayalam.CommandText = "SELECT id, name, title2, cat, lyrics, lyrics2 FROM sm WHERE cat LIKE '%Malayalam%' OR lyrics LIKE '%ദൈവം%' LIMIT 3;";
-        using var rMal = cmdMalayalam.ExecuteReader();
-        while (rMal.Read())
-        {
-            _output?.WriteLine($"\n================== MALAYALAM SONG #{rMal.GetInt64(0)}: {rMal.GetString(1)} (title2: {rMal.GetString(2)}) ==================");
-            _output?.WriteLine($"Category: {rMal.GetString(3)}");
-            _output?.WriteLine($"Lyrics 1:\n{rMal.GetString(4)}");
-            _output?.WriteLine($"Lyrics 2:\n{rMal.GetString(5)}");
-        }
-
-        // Test loading song 226016 via VerseViewDbService
-        var song = vv.LoadSong("226016", VerseViewLanguageChoice.Both);
-        Assert.NotNull(song);
-        Assert.Contains("എന്നു കാണും", song.PrimaryLyrics);
-        Assert.Contains("ennu kanum", song.SecondaryLyrics);
-        // Verify <slide> tags were converted to \n\n and <BR> tags converted to \n
-        Assert.DoesNotContain("<slide>", song.PrimaryLyrics, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("<br>", song.PrimaryLyrics, StringComparison.OrdinalIgnoreCase);
-
-        // Test search by song number on real VerseVIEW database
-        var search25 = vv.SearchSongs("25");
-        Assert.NotEmpty(search25);
-        Assert.Equal("25", search25[0].SongNumber);
-        Assert.Equal("Aakaashatherathil kristheshu", search25[0].Title);
-        Assert.StartsWith("#25  ", search25[0].DisplayTitle);
-
-        var searchHash1 = vv.SearchSongs("#1");
-        Assert.NotEmpty(searchHash1);
-        Assert.Equal("1", searchHash1[0].SongNumber);
-        Assert.Equal("Aa aa aa aa ennu kanum yeshu", searchHash1[0].Title);
-
-        var search100 = vv.SearchSongs("100");
-        Assert.NotEmpty(search100);
-        Assert.Equal("100", search100[0].SongNumber);
-        Assert.Equal("Aaradhyane aaradhyane", search100[0].Title);
-
-        // Test parser on the normalized lyrics
-        var parser = new LyricParserService();
-        var slides1 = parser.ParseByParagraph(song.PrimaryLyrics);
-        var slides2 = parser.ParseByParagraph(song.SecondaryLyrics);
-        Assert.Equal(slides1.Count, slides2.Count);
-        _output?.WriteLine($"\nSuccessfully parsed into {slides1.Count} synchronized slides!");
-        for (int i = 0; i < slides1.Count; i++)
-        {
-            _output?.WriteLine($"\nSlide #{i + 1} [{slides1[i].GroupName}]:");
-            _output?.WriteLine($"  Lang1 (Malayalam): {slides1[i].Lang1Text.Replace("\n", " / ")}");
-            _output?.WriteLine($"  Lang2 (Manglish):  {slides2[i].Lang1Text.Replace("\n", " / ")}");
-        }
+        var search = sdb.SearchSongs("1");
+        Assert.NotNull(search);
     }
 }

@@ -6,14 +6,14 @@ using ProLyric.Models;
 
 namespace ProLyric.Services;
 
-public enum VerseViewLanguageChoice
+public enum SongDbLanguageChoice
 {
     Both,
     PrimaryOnly,
     SecondaryOnly
 }
 
-public record VerseViewSongSummary(
+public record SongDbSongSummary(
     string Id,
     string Title,
     string? SecondaryTitle = null,
@@ -33,7 +33,7 @@ public record VerseViewSongSummary(
     }
 }
 
-public record VerseViewSongContent(
+public record SongDbSongContent(
     string SongId,
     string Title,
     string PrimaryLyrics,
@@ -41,10 +41,10 @@ public record VerseViewSongContent(
 );
 
 /// <summary>
-/// Loads VerseVIEW song data from either a SQLite .db or .xml file.
-/// For SQLite, dynamically inspects the schema to find the songs table and columns.
+/// Loads song database data from either a SQLite (.db, .sqlite) or .xml file.
+/// For SQLite, dynamically inspects the schema to discover tables and columns.
 /// </summary>
-public class VerseViewDbService : IDisposable
+public class SongDbService : IDisposable
 {
     private readonly string _dbPath;
     private SqliteConnection? _conn;
@@ -63,7 +63,7 @@ public class VerseViewDbService : IDisposable
     // XML cache (XML mode)
     private XDocument? _xmlDoc;
 
-    public VerseViewDbService(string dbPath)
+    public SongDbService(string dbPath)
     {
         _dbPath = dbPath;
     }
@@ -72,7 +72,7 @@ public class VerseViewDbService : IDisposable
     public void Open()
     {
         if (!File.Exists(_dbPath))
-            throw new FileNotFoundException($"VerseVIEW DB not found: {_dbPath}");
+            throw new FileNotFoundException($"SongDB database not found: {_dbPath}");
 
         string ext = Path.GetExtension(_dbPath).ToLowerInvariant();
 
@@ -90,14 +90,14 @@ public class VerseViewDbService : IDisposable
         }
     }
 
-    /// <summary>Searches songs by title.</summary>
-    public IReadOnlyList<VerseViewSongSummary> SearchSongs(string query)
+    /// <summary>Searches songs by title, lyrics, or song number.</summary>
+    public IReadOnlyList<SongDbSongSummary> SearchSongs(string query)
     {
         return _isSqlite ? SearchSqlite(query) : SearchXml(query);
     }
 
     /// <summary>Loads a song's content by its ID.</summary>
-    public VerseViewSongContent? LoadSong(string songId, VerseViewLanguageChoice choice = VerseViewLanguageChoice.Both)
+    public SongDbSongContent? LoadSong(string songId, SongDbLanguageChoice choice = SongDbLanguageChoice.Both)
     {
         return _isSqlite ? LoadSqlite(songId, choice) : LoadXml(songId, choice);
     }
@@ -116,7 +116,7 @@ public class VerseViewDbService : IDisposable
             t.Contains("song", StringComparison.OrdinalIgnoreCase) ||
             t.Contains("hymn", StringComparison.OrdinalIgnoreCase))
             ?? tables.FirstOrDefault()
-            ?? throw new InvalidOperationException("No tables found in VerseVIEW DB.");
+            ?? throw new InvalidOperationException("No tables found in song database.");
 
         var columns = GetColumnNames(_tableName);
 
@@ -153,219 +153,210 @@ public class VerseViewDbService : IDisposable
 
     private List<string> GetTableNames()
     {
-        var tables = new List<string>();
+        var list = new List<string>();
         using var cmd = _conn!.CreateCommand();
-        cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';";
+        cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
         using var r = cmd.ExecuteReader();
-        while (r.Read()) tables.Add(r.GetString(0));
-        return tables;
+        while (r.Read())
+            list.Add(r.GetString(0));
+        return list;
     }
 
     private List<string> GetColumnNames(string table)
     {
-        var cols = new List<string>();
+        var list = new List<string>();
         using var cmd = _conn!.CreateCommand();
-        cmd.CommandText = $"PRAGMA table_info(\"{table}\");";
+        cmd.CommandText = $"PRAGMA table_info(\"{table}\")";
         using var r = cmd.ExecuteReader();
-        while (r.Read()) cols.Add(r.GetString(1)); // column "name" is at index 1
-        return cols;
+        while (r.Read())
+            list.Add(r.GetString(1)); // column 1 is "name"
+        return list;
     }
 
     private static string? FindColumn(List<string> columns, string[] candidates)
     {
-        foreach (var candidate in candidates)
-            foreach (var col in columns)
-                if (col.Equals(candidate, StringComparison.OrdinalIgnoreCase))
-                    return col;
+        foreach (var c in candidates)
+        {
+            var match = columns.FirstOrDefault(col =>
+                col.Equals(c, StringComparison.OrdinalIgnoreCase) ||
+                col.Replace("_", "").Equals(c.Replace("_", ""), StringComparison.OrdinalIgnoreCase));
+            if (match is not null) return match;
+        }
         return null;
     }
 
     // -----------------------------------------------------------------------
-    //  SQLite: search and load
+    //  SQLite: searching and loading
     // -----------------------------------------------------------------------
 
-    private IReadOnlyList<VerseViewSongSummary> SearchSqlite(string query)
+    private IReadOnlyList<SongDbSongSummary> SearchSqlite(string query)
     {
-        var results = new List<VerseViewSongSummary>();
-        using var cmd = _conn!.CreateCommand();
+        if (_conn is null || _tableName is null || _idColumn is null || _titleColumn is null)
+            return [];
+
+        var results = new List<SongDbSongSummary>();
+        using var cmd = _conn.CreateCommand();
 
         string selectCols = $"\"{_idColumn}\", \"{_titleColumn}\"";
-        if (_title2Column is not null)
-            selectCols += $", \"{_title2Column}\"";
-        if (_categoryColumn is not null)
-            selectCols += $", \"{_categoryColumn}\"";
-        if (_songNumberColumn is not null && !_songNumberColumn.Equals(_idColumn, StringComparison.OrdinalIgnoreCase))
-            selectCols += $", \"{_songNumberColumn}\"";
-
-        string whereClause;
-        string orderClause;
+        if (_title2Column is not null) selectCols += $", \"{_title2Column}\"";
+        if (_categoryColumn is not null) selectCols += $", \"{_categoryColumn}\"";
+        if (_songNumberColumn is not null) selectCols += $", \"{_songNumberColumn}\"";
 
         string cleanQuery = query.Trim();
+        string? exactNum = null;
+        var numMatch = Regex.Match(cleanQuery, @"^(?:#\s*|song\s*#?\s*|no\.?\s*#?\s*|hymn\s*#?\s*)?(\d+)$", RegexOptions.IgnoreCase);
+        if (numMatch.Success)
+        {
+            exactNum = numMatch.Groups[1].Value;
+        }
+
         if (string.IsNullOrWhiteSpace(cleanQuery))
         {
-            whereClause = "1=1";
-            orderClause = $"\"{_titleColumn}\"";
+            cmd.CommandText = $"SELECT {selectCols} FROM \"{_tableName}\" ORDER BY \"{_titleColumn}\" LIMIT 5000";
         }
         else
         {
-            var match = Regex.Match(cleanQuery, @"^(?:song|hymn|no\.?|number)?\s*#?\s*(\d+)$", RegexOptions.IgnoreCase);
-            string? exactNum = match.Success ? match.Groups[1].Value : null;
-
-            var conditions = new List<string> { $"\"{_titleColumn}\" LIKE $q" };
-            cmd.Parameters.AddWithValue("$q", $"%{cleanQuery}%");
-
-            if (_title2Column is not null)
-                conditions.Add($"\"{_title2Column}\" LIKE $q");
-            if (_categoryColumn is not null)
-                conditions.Add($"\"{_categoryColumn}\" LIKE $q");
+            var whereClauses = new List<string>();
 
             if (exactNum is not null)
             {
-                cmd.Parameters.AddWithValue("$numExact", exactNum);
-                cmd.Parameters.AddWithValue("$numLike", $"{exactNum}%");
-                cmd.Parameters.AddWithValue("$prefixQuery", $"{cleanQuery}%");
-
-                var numConditions = new List<string>();
                 if (_songNumberColumn is not null)
                 {
-                    numConditions.Add($"\"{_songNumberColumn}\" = $numExact");
-                    numConditions.Add($"\"{_songNumberColumn}\" LIKE $numLike");
-                }
-                numConditions.Add($"\"{_idColumn}\" = $numExact");
-                conditions.Add($"({string.Join(" OR ", numConditions)})");
-
-                if (_songNumberColumn is not null)
-                {
-                    orderClause = $"""
-                        CASE 
-                            WHEN "{_songNumberColumn}" = $numExact THEN 0
-                            WHEN "{_idColumn}" = $numExact THEN 1
-                            WHEN "{_songNumberColumn}" LIKE $numLike THEN 2
-                            WHEN "{_titleColumn}" LIKE $prefixQuery THEN 3
-                            ELSE 4
-                        END,
-                        LENGTH("{_songNumberColumn}") ASC,
-                        "{_titleColumn}"
-                        """;
+                    whereClauses.Add($"CAST(\"{_songNumberColumn}\" AS TEXT) = @exactNum");
+                    whereClauses.Add($"CAST(\"{_songNumberColumn}\" AS TEXT) LIKE @numPrefix");
+                    whereClauses.Add($"CAST(\"{_idColumn}\" AS TEXT) = @exactNum");
                 }
                 else
                 {
-                    orderClause = $"""
-                        CASE 
-                            WHEN "{_idColumn}" = $numExact THEN 0
-                            WHEN "{_titleColumn}" LIKE $prefixQuery THEN 1
-                            ELSE 2
-                        END,
-                        "{_titleColumn}"
-                        """;
+                    whereClauses.Add($"CAST(\"{_idColumn}\" AS TEXT) = @exactNum");
+                    whereClauses.Add($"CAST(\"{_idColumn}\" AS TEXT) LIKE @numPrefix");
                 }
+                whereClauses.Add($"\"{_titleColumn}\" LIKE @q");
+                if (_title2Column is not null)
+                    whereClauses.Add($"\"{_title2Column}\" LIKE @q");
             }
             else
             {
-                cmd.Parameters.AddWithValue("$prefixQuery", $"{cleanQuery}%");
-                if (_songNumberColumn is not null)
-                {
-                    conditions.Add($"\"{_songNumberColumn}\" LIKE $q");
-                }
+                whereClauses.Add($"\"{_titleColumn}\" LIKE @q");
 
-                orderClause = $"""
-                    CASE 
-                        WHEN "{_titleColumn}" LIKE $prefixQuery THEN 0
-                        {(_title2Column is not null ? $"WHEN \"{_title2Column}\" LIKE $prefixQuery THEN 1" : "")}
-                        ELSE 2
-                    END,
-                    "{_titleColumn}"
-                    """;
+                if (_title2Column is not null)
+                    whereClauses.Add($"\"{_title2Column}\" LIKE @q");
+
+                if (_primaryColumn is not null)
+                    whereClauses.Add($"\"{_primaryColumn}\" LIKE @q");
+
+                if (_secondaryColumn is not null)
+                    whereClauses.Add($"\"{_secondaryColumn}\" LIKE @q");
+
+                if (_categoryColumn is not null)
+                    whereClauses.Add($"\"{_categoryColumn}\" LIKE @q");
+
+                if (_songNumberColumn is not null)
+                    whereClauses.Add($"\"{_songNumberColumn}\" LIKE @q");
             }
 
-            whereClause = string.Join(" OR ", conditions);
-        }
+            cmd.CommandText = $"SELECT {selectCols} FROM \"{_tableName}\" WHERE {string.Join(" OR ", whereClauses)}";
 
-        cmd.CommandText = $"""
-            SELECT {selectCols}
-            FROM "{_tableName}"
-            WHERE {whereClause}
-            ORDER BY {orderClause}
-            LIMIT 500;
-            """;
+            if (exactNum is not null)
+            {
+                string orderIdExpr = $"CAST(\"{_idColumn}\" AS TEXT)";
+                string orderNumExpr = _songNumberColumn is not null ? $"CAST(\"{_songNumberColumn}\" AS TEXT)" : orderIdExpr;
+
+                cmd.CommandText += $@"
+                    ORDER BY 
+                        CASE 
+                            WHEN {orderNumExpr} = @exactNum THEN 0
+                            WHEN {orderIdExpr} = @exactNum THEN 1
+                            WHEN {orderNumExpr} LIKE @numPrefix THEN 2
+                            ELSE 3
+                        END,
+                        LENGTH({orderNumExpr}),
+                        ""{_titleColumn}""
+                    LIMIT 200";
+
+                cmd.Parameters.AddWithValue("@exactNum", exactNum);
+                cmd.Parameters.AddWithValue("@numPrefix", exactNum + "%");
+            }
+            else
+            {
+                cmd.CommandText += $" ORDER BY \"{_titleColumn}\" LIMIT 200";
+            }
+
+            cmd.Parameters.AddWithValue("@q", $"%{cleanQuery}%");
+        }
 
         using var r = cmd.ExecuteReader();
+        int ordId = r.GetOrdinal(_idColumn);
+        int ordTitle = r.GetOrdinal(_titleColumn);
+        int ordTitle2 = _title2Column is not null ? r.GetOrdinal(_title2Column) : -1;
+        int ordCat = _categoryColumn is not null ? r.GetOrdinal(_categoryColumn) : -1;
+        int ordNum = _songNumberColumn is not null ? r.GetOrdinal(_songNumberColumn) : -1;
+
         while (r.Read())
         {
-            string id = r.GetValue(0).ToString()!;
-            string title = r.IsDBNull(1) ? "" : r.GetString(1);
-            int nextCol = 2;
-            string? title2 = _title2Column is not null && !r.IsDBNull(nextCol) ? r.GetString(nextCol++) : null;
-            if (title2 == "null") title2 = null;
+            string id = r.GetValue(ordId)?.ToString() ?? "";
+            string title = r.GetValue(ordTitle)?.ToString() ?? "";
+            string? title2 = ordTitle2 >= 0 && !r.IsDBNull(ordTitle2) ? r.GetValue(ordTitle2)?.ToString() : null;
+            string? cat = ordCat >= 0 && !r.IsDBNull(ordCat) ? r.GetValue(ordCat)?.ToString() : null;
+            string? num = ordNum >= 0 && !r.IsDBNull(ordNum) ? r.GetValue(ordNum)?.ToString() : null;
 
-            string? cat = _categoryColumn is not null && !r.IsDBNull(nextCol) ? r.GetString(nextCol++) : null;
-            if (cat == "null") cat = null;
-
-            string? songNum = null;
-            if (_songNumberColumn is not null)
+            if (string.IsNullOrWhiteSpace(num) && int.TryParse(id, out _))
             {
-                if (_songNumberColumn.Equals(_idColumn, StringComparison.OrdinalIgnoreCase))
-                {
-                    songNum = id;
-                }
-                else if (!r.IsDBNull(nextCol))
-                {
-                    songNum = r.GetValue(nextCol++).ToString();
-                }
+                num = id;
             }
-            if (songNum == "null" || string.IsNullOrWhiteSpace(songNum)) songNum = null;
 
-            results.Add(new VerseViewSongSummary(id, title, title2, cat, songNum));
+            results.Add(new SongDbSongSummary(id, title, title2, cat, num));
         }
+
         return results;
     }
 
-    private VerseViewSongContent? LoadSqlite(string songId, VerseViewLanguageChoice choice)
+    private SongDbSongContent? LoadSqlite(string songId, SongDbLanguageChoice choice)
     {
-        var selectCols = BuildSelectColumns(choice);
-        using var cmd = _conn!.CreateCommand();
-        cmd.CommandText = $"""
-            SELECT {selectCols}
-            FROM "{_tableName}"
-            WHERE "{_idColumn}" = $id;
-            """;
-        cmd.Parameters.AddWithValue("$id", songId);
+        if (_conn is null || _tableName is null || _idColumn is null || _titleColumn is null)
+            return null;
+
+        using var cmd = _conn.CreateCommand();
+        string cols = BuildSelectColumns(choice);
+        cmd.CommandText = $"SELECT {cols} FROM \"{_tableName}\" WHERE \"{_idColumn}\" = @id LIMIT 1";
+        cmd.Parameters.AddWithValue("@id", songId);
+
         using var r = cmd.ExecuteReader();
         if (!r.Read()) return null;
 
-        return BuildContent(songId, r, choice);
+        return BuildContentFromReader(r, songId, choice);
     }
 
-    private string BuildSelectColumns(VerseViewLanguageChoice choice)
+    private string BuildSelectColumns(SongDbLanguageChoice choice)
     {
         var cols = new List<string> { $"\"{_titleColumn}\"" };
-        if (choice != VerseViewLanguageChoice.SecondaryOnly && _primaryColumn is not null)
+        if (choice != SongDbLanguageChoice.SecondaryOnly && _primaryColumn is not null)
             cols.Add($"\"{_primaryColumn}\"");
-        if (choice != VerseViewLanguageChoice.PrimaryOnly && _secondaryColumn is not null)
+        if (choice != SongDbLanguageChoice.PrimaryOnly && _secondaryColumn is not null)
             cols.Add($"\"{_secondaryColumn}\"");
         return string.Join(", ", cols);
     }
 
-    private VerseViewSongContent BuildContent(string songId, SqliteDataReader r, VerseViewLanguageChoice choice)
+    private SongDbSongContent BuildContentFromReader(SqliteDataReader r, string songId, SongDbLanguageChoice choice)
     {
-        int col = 0;
-        string title    = r.IsDBNull(col) ? "" : r.GetString(col++);
-        string primary  = "";
+        string title = r.GetString(0);
+        string primary = "";
         string secondary = "";
+        int colIdx = 1;
 
-        if (choice != VerseViewLanguageChoice.SecondaryOnly && _primaryColumn is not null)
-            primary = r.IsDBNull(col) ? "" : NormalizeLyrics(r.GetString(col++));
-        if (choice != VerseViewLanguageChoice.PrimaryOnly && _secondaryColumn is not null)
-            secondary = r.IsDBNull(col) ? "" : NormalizeLyrics(r.GetString(col++));
+        if (choice != SongDbLanguageChoice.SecondaryOnly && _primaryColumn is not null)
+            primary = NormalizeLyrics(!r.IsDBNull(colIdx) ? r.GetString(colIdx) : ""); colIdx++;
+        if (choice != SongDbLanguageChoice.PrimaryOnly && _secondaryColumn is not null)
+            secondary = NormalizeLyrics(!r.IsDBNull(colIdx) ? r.GetString(colIdx) : "");
 
-        return new VerseViewSongContent(songId, title, primary, secondary);
+        return new SongDbSongContent(songId, title, primary, secondary);
     }
 
     private static string NormalizeLyrics(string text)
     {
         if (string.IsNullOrEmpty(text)) return text;
 
-        // Replace VerseVIEW <slide> or <SLIDE> tags with paragraph breaks (\n\n)
+        // Replace <slide> or <SLIDE> tags with paragraph breaks (\n\n)
         text = Regex.Replace(text, @"<\s*slide\s*>", "\n\n", RegexOptions.IgnoreCase);
 
         // Replace <br>, <br/>, <BR> with line breaks (\n)
@@ -378,24 +369,30 @@ public class VerseViewDbService : IDisposable
     }
 
     // -----------------------------------------------------------------------
-    //  XML mode
+    //  XML fallback
     // -----------------------------------------------------------------------
 
-    private IReadOnlyList<VerseViewSongSummary> SearchXml(string query)
+    private IReadOnlyList<SongDbSongSummary> SearchXml(string query)
     {
-        var results = new List<VerseViewSongSummary>();
-        if (_xmlDoc is null) return results;
+        if (_xmlDoc is null) return [];
 
+        var results = new List<SongDbSongSummary>();
         string cleanQuery = query.Trim();
-        var match = Regex.Match(cleanQuery, @"^(?:song|hymn|no\.?|number)?\s*#?\s*(\d+)$", RegexOptions.IgnoreCase);
-        string? exactNum = match.Success ? match.Groups[1].Value : null;
+        string? exactNum = null;
+        var numMatch = Regex.Match(cleanQuery, @"^(?:#\s*|song\s*#?\s*|no\.?\s*#?\s*|hymn\s*#?\s*)?(\d+)$", RegexOptions.IgnoreCase);
+        if (numMatch.Success)
+        {
+            exactNum = numMatch.Groups[1].Value;
+        }
 
         foreach (var el in _xmlDoc.Descendants())
         {
             string? id = el.Attribute("id")?.Value ?? el.Element("id")?.Value;
-            string? title = el.Attribute("title")?.Value ?? el.Element("title")?.Value
-                         ?? el.Attribute("name")?.Value ?? el.Element("name")?.Value;
-            if (id is null || title is null) continue;
+            if (string.IsNullOrEmpty(id)) continue;
+
+            string title = el.Attribute("title")?.Value ?? el.Element("title")?.Value
+                        ?? el.Attribute("name")?.Value ?? el.Element("name")?.Value ?? "";
+            if (string.IsNullOrEmpty(title)) continue;
 
             string? title2 = el.Attribute("title2")?.Value ?? el.Element("title2")?.Value;
             if (title2 == "null") title2 = null;
@@ -438,7 +435,7 @@ public class VerseViewDbService : IDisposable
 
             if (matches)
             {
-                results.Add(new VerseViewSongSummary(id, title, title2, cat, num));
+                results.Add(new SongDbSongSummary(id, title, title2, cat, num));
             }
         }
 
@@ -453,7 +450,7 @@ public class VerseViewDbService : IDisposable
         return results.OrderBy(s => s.Title).ToList();
     }
 
-    private VerseViewSongContent? LoadXml(string songId, VerseViewLanguageChoice choice)
+    private SongDbSongContent? LoadXml(string songId, SongDbLanguageChoice choice)
     {
         if (_xmlDoc is null) return null;
 
@@ -466,7 +463,7 @@ public class VerseViewDbService : IDisposable
             string primary = NormalizeLyrics(el.Element("lyrics")?.Value ?? el.Element("content")?.Value ?? "");
             string secondary = NormalizeLyrics(el.Element("transliteration")?.Value ?? el.Element("secondary")?.Value ?? "");
 
-            return new VerseViewSongContent(songId, title, primary, secondary);
+            return new SongDbSongContent(songId, title, primary, secondary);
         }
         return null;
     }

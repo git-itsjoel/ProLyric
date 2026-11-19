@@ -25,6 +25,12 @@ if (-not $SkipPublish) {
         Remove-Item $publishDir -Recurse -Force
     }
 
+    & dotnet build ProLyric\ProLyric.csproj -c Release -r win-x64
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "dotnet build failed with exit code $LASTEXITCODE."
+        exit $LASTEXITCODE
+    }
+
     $publishArgs = @(
         "publish", "ProLyric\ProLyric.csproj",
         "-c", "Release",
@@ -32,6 +38,7 @@ if (-not $SkipPublish) {
         "--self-contained", "false",
         "-p:PublishSingleFile=true",
         "-p:DebugType=none",
+        "--no-build",
         "-o", $publishDir
     )
 

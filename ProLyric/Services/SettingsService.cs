@@ -45,13 +45,7 @@ public class SettingsService
     private static readonly string SettingsPath =
         Path.Combine(SettingsDir, "settings.json");
 
-    private static readonly string[] KnownVerseViewLocations =
-    [
-        @"c:\Program Files\VerseVIEW10\resources\app.asar.unpacked\songs_database\songs.db",
-        @"c:\Program Files\VerseVIEW\resources\app.asar.unpacked\songs_database\songs.db",
-        @"c:\Program Files (x86)\VerseVIEW10\resources\app.asar.unpacked\songs_database\songs.db",
-        @"c:\Program Files (x86)\VerseVIEW\resources\app.asar.unpacked\songs_database\songs.db"
-    ];
+    private static readonly string[] KnownSongDbLocations = [];
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -87,14 +81,14 @@ public class SettingsService
             _current = new AppSettings();
         }
 
-        // Auto-detect VerseVIEW DB if not configured
-        if (string.IsNullOrEmpty(_current.VerseViewDbPath))
+        // Auto-detect SongDB if not configured
+        if (string.IsNullOrEmpty(_current.SongDbPath))
         {
-            foreach (var loc in KnownVerseViewLocations)
+            foreach (var loc in KnownSongDbLocations)
             {
                 if (File.Exists(loc))
                 {
-                    _current.VerseViewDbPath = loc;
+                    _current.SongDbPath = loc;
                     Save();
                     break;
                 }

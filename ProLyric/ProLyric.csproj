@@ -9,6 +9,10 @@
     <AssemblyName>ProLyric</AssemblyName>
     <RootNamespace>ProLyric</RootNamespace>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <Title>ProLyric</Title>
+    <Product>ProLyric</Product>
+    <Company>Joel Boban</Company>
+    <Copyright>Copyright (c) 2026 Joel Boban. All rights reserved.</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

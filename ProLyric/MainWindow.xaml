@@ -19,6 +19,20 @@
         <vm:MainViewModel/>
     </Window.DataContext>
 
+    <Window.InputBindings>
+        <KeyBinding Modifiers="Control" Key="N" Command="{Binding NewSongCommand}"/>
+        <KeyBinding Modifiers="Control" Key="S" Command="{Binding SaveSongCommand}"/>
+        <KeyBinding Modifiers="Control" Key="E" Command="{Binding ExportProCommand}"/>
+        <KeyBinding Modifiers="Control" Key="O" Command="{Binding OpenLibraryCommand}"/>
+        <KeyBinding Modifiers="Control" Key="D" Command="{Binding OpenSongDbCommand}"/>
+        <KeyBinding Modifiers="Control" Key="B" Command="{Binding OpenBulkPasteCommand}"/>
+        <KeyBinding Modifiers="Control+Shift" Key="T" Command="{Binding TransliterateAllSlidesCommand}"/>
+        <KeyBinding Modifiers="Control" Key="T" Command="{Binding TransliterateCurrentSlideCommand}"/>
+        <KeyBinding Modifiers="Control" Key="M" Command="{Binding AddSlideCommand}"/>
+        <KeyBinding Modifiers="Alt" Key="Up" Command="{Binding MoveUpCommand}"/>
+        <KeyBinding Modifiers="Alt" Key="Down" Command="{Binding MoveDownCommand}"/>
+    </Window.InputBindings>
+
     <Grid Background="{StaticResource BrushBgPitchBlack}">
         <Grid.RowDefinitions>
             <!-- Top Command Bar -->
@@ -132,18 +146,23 @@
                 <!-- Action Buttons -->
                 <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="+ New" Command="{Binding NewSongCommand}"
-                            Style="{StaticResource BtnSecondary}" Padding="12,6" Margin="0,0,6,0"/>
+                            Style="{StaticResource BtnSecondary}" Padding="12,6" Margin="0,0,6,0"
+                            ToolTip="New Presentation (Ctrl + N)"/>
                     <Button Content="Library" Command="{Binding OpenLibraryCommand}"
-                            Style="{StaticResource BtnSecondary}" Padding="13,6" Margin="0,0,6,0"/>
+                            Style="{StaticResource BtnSecondary}" Padding="13,6" Margin="0,0,6,0"
+                            ToolTip="Open Song Library (Ctrl + O)"/>
                     <Button Content="SongDB" Command="{Binding OpenSongDbCommand}"
                             Style="{StaticResource BtnSecondary}" Padding="13,6" Margin="0,0,6,0"
-                            ToolTip="Search and import songs from Song Database (SongDB)"/>
+                            ToolTip="Search and import songs from Song Database (Ctrl + D)"/>
                     <Button Content="Bulk Paste" Command="{Binding OpenBulkPasteCommand}"
-                            Style="{StaticResource BtnSecondary}" Padding="13,6" Margin="0,0,8,0"/>
+                            Style="{StaticResource BtnSecondary}" Padding="13,6" Margin="0,0,8,0"
+                            ToolTip="Bulk Paste unstructured lyrics (Ctrl + B)"/>
                     <Button Content="Save" Command="{Binding SaveSongCommand}"
-                            Style="{StaticResource BtnSecondary}" FontWeight="SemiBold" Padding="14,6" Margin="0,0,8,0"/>
+                            Style="{StaticResource BtnSecondary}" FontWeight="SemiBold" Padding="14,6" Margin="0,0,8,0"
+                            ToolTip="Save to Local Library (Ctrl + S)"/>
                     <Button Content="Export .pro" Command="{Binding ExportProCommand}"
-                            Style="{StaticResource BtnPrimary}" Padding="18,6"/>
+                            Style="{StaticResource BtnPrimary}" Padding="18,6"
+                            ToolTip="Export to ProPresenter .pro Presentation (Ctrl + E)"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -180,11 +199,12 @@
 
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" DockPanel.Dock="Right">
                             <Button Content="+ Add" Command="{Binding AddSlideCommand}"
-                                    Style="{StaticResource BtnTool}" FontWeight="SemiBold" Foreground="#FFFFFF" Padding="10,3" Margin="0,0,4,0"/>
+                                    Style="{StaticResource BtnTool}" FontWeight="SemiBold" Foreground="#FFFFFF" Padding="10,3" Margin="0,0,4,0"
+                                    ToolTip="Add New Slide (Ctrl + M or Insert)"/>
                             <Button Content="▲" Command="{Binding MoveUpCommand}"
-                                    Style="{StaticResource BtnTool}" Width="26" Height="24" Margin="0,0,4,0" ToolTip="Move Slide Up"/>
+                                    Style="{StaticResource BtnTool}" Width="26" Height="24" Margin="0,0,4,0" ToolTip="Move Slide Up (Alt + Up)"/>
                             <Button Content="▼" Command="{Binding MoveDownCommand}"
-                                    Style="{StaticResource BtnTool}" Width="26" Height="24" Margin="0,0,4,0" ToolTip="Move Slide Down"/>
+                                    Style="{StaticResource BtnTool}" Width="26" Height="24" Margin="0,0,4,0" ToolTip="Move Slide Down (Alt + Down)"/>
                             <Button Content="✕" Command="{Binding RemoveSlideCommand}"
                                     Style="{StaticResource BtnTool}" Width="26" Height="24" Foreground="#FF6666" ToolTip="Delete Selected Slide"/>
                         </StackPanel>
@@ -281,7 +301,7 @@
                                     Visibility="{Binding IsDualMode, Converter={x:Static vm:BoolToVisConverter.Instance}}"
                                     Style="{StaticResource BtnTool}" FontWeight="SemiBold" Foreground="#FFFFFF"
                                     Padding="14,6"
-                                    ToolTip="Transliterate Malayalam in Lang 1 to Manglish in Lang 2 for all slides"/>
+                                    ToolTip="Transliterate Malayalam in Lang 1 to Manglish in Lang 2 for all slides (Ctrl + Shift + T)"/>
                         </StackPanel>
                     </DockPanel>
 
